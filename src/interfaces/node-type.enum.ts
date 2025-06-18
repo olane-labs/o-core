@@ -1,7 +1,7 @@
 export enum NodeType {
   LEADER = 'leader',
-  SERVICE = 'service',
-  ACTION = 'action',
-  ENTITY = 'entity',
+  HOST = 'host',
+  HOST_VIRTUAL = 'host-virtual',
+  TOOL = 'tool',
   UNKNOWN = 'unknown',
 }

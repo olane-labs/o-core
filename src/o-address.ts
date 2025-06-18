@@ -1,4 +1,4 @@
-import { Multiaddr, multiaddr } from '@olane-labs/o-config';
+import { Multiaddr, multiaddr } from '@olane/o-config';
 
 export class oAddress {
   constructor(

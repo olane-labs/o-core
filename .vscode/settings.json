@@ -1,0 +1,7 @@
+{
+  "jest.autoRun": "off",
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit"
+  },
+  "prettier.enable": true
+} 

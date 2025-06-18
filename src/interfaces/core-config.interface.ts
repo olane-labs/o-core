@@ -1,4 +1,4 @@
-import { Libp2p } from '@olane-labs/o-config';
+import { Libp2pConfig } from '@olane/o-config';
 import { oAddress } from '../o-address';
 import { NodeType } from './node-type.enum';
 
@@ -8,5 +8,5 @@ export interface CoreConfig {
   persist?: boolean;
   seed?: string;
   name?: string;
-  p2pNode?: Libp2p;
+  network?: Libp2pConfig;
 }

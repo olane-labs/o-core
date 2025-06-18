@@ -1,10 +1,8 @@
-import {
-  generateKeyPairFromSeed,
-  createEd25519PeerId,
-} from '@olane-labs/o-config';
+import { generateKeyPairFromSeed, createEd25519PeerId } from '@olane/o-config';
 import { createHash } from 'crypto';
+import { oAddress } from '../o-address';
 
-export class CoreNodeUtils {
+export class CoreUtils {
   static async generatePeerId(): Promise<any> {
     const peerId = await createEd25519PeerId();
     return peerId;
@@ -23,5 +21,12 @@ export class CoreNodeUtils {
     const hash = createHash('sha256').update(phrase).digest('hex');
     // Take the first 32 characters of the hex string
     return hash.substring(0, 32);
+  }
+
+  public static encapsulateNode(
+    parentAddress: oAddress,
+    childAddress: oAddress,
+  ): oAddress {
+    return new oAddress(parentAddress.toString() + '/' + childAddress.paths);
   }
 }
