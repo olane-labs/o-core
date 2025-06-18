@@ -9,4 +9,5 @@ export interface CoreConfig {
   seed?: string;
   name?: string;
   network?: Libp2pConfig;
+  leaderTransports?: string[]; // The bootstrap transports for the node
 }
