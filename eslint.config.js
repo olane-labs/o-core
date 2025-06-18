@@ -32,7 +32,6 @@ module.exports = defineConfig([{
     },
 
     extends: compat.extends(
-        "expo",
         "plugin:@typescript-eslint/recommended",
         "plugin:prettier/recommended",
     ),
