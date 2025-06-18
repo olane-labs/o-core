@@ -28,7 +28,8 @@
     "build": "webpack --mode production && tsc --declaration --emitDeclarationOnly",
     "start:prod": "node dist/index.js",
     "prepublishOnly": "npm run build",
-    "update:lib": "npm install @olane/o-config@latest"
+    "update:lib": "npm install @olane/o-config@latest",
+    "lint": "eslint src/**/*.ts"
   },
   "repository": {
     "type": "git",
