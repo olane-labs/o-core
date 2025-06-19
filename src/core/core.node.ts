@@ -10,6 +10,7 @@ import { oAddress } from './o-address';
 import { Logger } from './utils/logger';
 import { CoreUtils } from './utils/core.utils';
 import { NodeType } from './interfaces/node-type.enum';
+import { oConnectionManager } from './lib/o-connection-manager';
 
 export abstract class oCoreNode {
   public p2pNode: Libp2p;
@@ -20,6 +21,7 @@ export abstract class oCoreNode {
   public peerId: PeerId;
   public state: NodeState = NodeState.STOPPED;
   public errors: Error[] = [];
+  private connectionManager: oConnectionManager;
 
   constructor(protected readonly config: CoreConfig) {
     this.logger = new Logger(
@@ -27,6 +29,9 @@ export abstract class oCoreNode {
     );
     this.address = config.address || new oAddress('o://node');
     this.networkConfig = config.network || defaultLibp2pConfig;
+    this.connectionManager = new oConnectionManager({
+      logger: this.logger,
+    });
   }
 
   get networkCard() {
