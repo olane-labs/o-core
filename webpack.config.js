@@ -14,28 +14,30 @@ const createConfig = (target, entry, filename, format) => ({
     globalObject: 'this',
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js']
+    extensions: ['.tsx', '.ts', '.js'],
   },
   module: {
     rules: [
       {
         test: /\.(ts|tsx)$/,
-        use: 'babel-loader',
-        exclude: /node_modules/
-      }
-    ]
+        use: 'ts-loader',
+        include: [
+          /src\/.*/,
+          /node_modules\/@olane\/o-protocol\/schema\/v1.0.0/,
+        ],
+      },
+    ],
   },
   plugins: [
     new webpack.DefinePlugin({
-      'process.env.npm_package_version': JSON.stringify(packageJson.version)
-    })
+      'process.env.npm_package_version': JSON.stringify(packageJson.version),
+    }),
   ],
   experiments: {
-    outputModule: format === 'module'
-  }
+    outputModule: format === 'module',
+  },
 });
 
 module.exports = [
   createConfig('node', './src/index.ts', 'index.js', 'commonjs2'),
-
 ];

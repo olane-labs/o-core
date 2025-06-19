@@ -1,4 +1,4 @@
-import { oDependency as oDependencyType } from '@olane/o-protocol/schema/v1.0.0/schema';
+import { oDependency as oDependencyType } from '../core/protocol';
 
 export class oDependency implements oDependencyType {
   address: string;

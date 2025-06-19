@@ -8,7 +8,7 @@ import {
   JSONRPC_VERSION,
   oHandshakeRequest,
   oProtocolMethods,
-} from '@olane/o-protocol/schema/v1.0.0/schema';
+} from '../protocol';
 import { oResponse } from './o-response';
 
 export class oConnection {

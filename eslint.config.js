@@ -46,5 +46,6 @@ module.exports = defineConfig([{
         "@typescript-eslint/no-var-requires": "off",
         "react/display-name": "off",
         "prettier/prettier": "error",
+        "@typescript-eslint/no-empty-object-type": "off",
     },
 }, globalIgnores(["**/.eslintrc.js"])]);

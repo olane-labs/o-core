@@ -4,7 +4,7 @@ import {
   Request,
   RequestId,
   RequestParams,
-} from '@olane/o-protocol';
+} from '../protocol';
 
 export class oRequest implements JSONRPCRequest {
   jsonrpc: typeof JSONRPC_VERSION;

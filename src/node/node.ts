@@ -68,10 +68,6 @@ export class oNode extends oCoreNode {
     this.p2pNode = await createNode(params);
   }
 
-  async use(): Promise<void> {
-    throw new Error('Method not implemented.');
-  }
-
   async register(): Promise<void> {
     throw new Error('Method not implemented.');
   }

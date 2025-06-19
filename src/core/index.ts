@@ -4,3 +4,4 @@ export * from './o-address';
 export * from './interfaces';
 export * from './o-dependency';
 export * from './utils/logger';
+export * from './lib';
