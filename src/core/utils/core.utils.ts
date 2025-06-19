@@ -1,6 +1,14 @@
-import { generateKeyPairFromSeed, createEd25519PeerId } from '@olane/o-config';
+import {
+  generateKeyPairFromSeed,
+  createEd25519PeerId,
+  Stream,
+  Uint8ArrayList,
+  pushable,
+} from '@olane/o-config';
 import { createHash } from 'crypto';
 import { oAddress } from '../o-address';
+import { oResponse } from '../lib/o-response';
+import { oRequest } from '../lib/o-request';
 
 export class CoreUtils {
   static async generatePeerId(): Promise<any> {
@@ -28,5 +36,30 @@ export class CoreUtils {
     childAddress: oAddress,
   ): oAddress {
     return new oAddress(parentAddress.toString() + '/' + childAddress.paths);
+  }
+
+  public static async sendResponse(response: oResponse, stream: Stream) {
+    if (stream.status !== 'open') {
+      return;
+    }
+
+    const responseStream = pushable();
+    responseStream.push(new TextEncoder().encode(response.toString()));
+    responseStream.end();
+    return await stream.sink(responseStream);
+  }
+
+  public static async processStream(stream: any): Promise<oRequest> {
+    const chunks: Uint8Array[] = [];
+
+    for await (const chunk of stream.source) {
+      chunks.push(chunk.subarray());
+    }
+
+    const data = new Uint8ArrayList(...chunks).slice();
+    if (!data || data.length === 0) {
+      throw new Error('No data received');
+    }
+    return new oRequest(JSON.parse(new TextDecoder().decode(data)));
   }
 }
