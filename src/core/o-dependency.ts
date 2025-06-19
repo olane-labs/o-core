@@ -10,4 +10,16 @@ export class oDependency implements oDependencyType {
     this.version = config.version;
     this.parameters = config.parameters;
   }
+
+  toJSON(): oDependencyType {
+    return {
+      address: this.address,
+      version: this.version,
+      parameters: this.parameters,
+    };
+  }
+
+  toString(): string {
+    return JSON.stringify(this.toJSON());
+  }
 }

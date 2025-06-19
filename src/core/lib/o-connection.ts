@@ -10,6 +10,7 @@ import {
   oProtocolMethods,
 } from '../protocol';
 import { oResponse } from './o-response';
+import { ConnectionSendParams } from '../interfaces/connection-send-params.interface';
 
 export class oConnection {
   public readonly id: string;
@@ -52,6 +53,17 @@ export class oConnection {
     // do nothing
   }
 
+  createRequest(method: string, params: ConnectionSendParams): oRequest {
+    return new oRequest({
+      method: method,
+      params: {
+        _connectionId: this.id,
+        ...params,
+      },
+      id: this.requestCounter++,
+    });
+  }
+
   async start() {
     if (this.handshakePromise) {
       this.logger.debug(
@@ -59,41 +71,12 @@ export class oConnection {
       );
       return this.handshakePromise;
     }
-    const params: oHandshakeRequest = {
-      method: oProtocolMethods.HANDSHAKE,
-      params: {
-        address: this.address.value,
-        _connectionId: this.id,
-      },
-      jsonrpc: JSONRPC_VERSION,
-      id: this.requestCounter++,
-    };
+    const params = this.createRequest(oProtocolMethods.HANDSHAKE, {
+      address: this.address.value,
+    });
     const request = new oRequest(params);
     this.handshakePromise = this.transmit(request);
     return this.handshakePromise;
-  }
-
-  async handleResponse(response: oResponse) {
-    this.logger.debug('Processing response: ', response);
-    if (response.result.type === oProtocolMethods.HANDSHAKE) {
-      if (response.result.dependencies) {
-        this.logger.debug(
-          'Handshake response received',
-          response.result.dependencies,
-        );
-        this.dependencies = (
-          response.result.dependencies as Array<oDependency>
-        ).map((dependency) => new oDependency(dependency));
-        // const dependencyResults = await this.config.onHandshake(this);
-        // this.dependencies = dependencyResults;
-      }
-      if (response.result.parameters) {
-        this.parameters = {
-          ...this.parameters,
-          dependencies: this.dependencies,
-        };
-      }
-    }
   }
 
   async transmit(request: oRequest): Promise<oResponse> {
@@ -107,18 +90,17 @@ export class oConnection {
     // Send the data
     await stream.sink(pushableStream);
     const res = await this.read(stream.source);
+
+    // process the response
     const response = new oResponse(res);
-    await this.handleResponse(response);
     return response;
   }
 
-  async send(data: oRequest): Promise<oResponse> {
+  async send(data: ConnectionSendParams): Promise<oResponse> {
     this.logger.debug('Sending data via protocol: ' + this.address.value, data);
 
-    // start the handshake
-    await this.start();
-
-    return this.transmit(data);
+    const request = this.createRequest(oProtocolMethods.ROUTE, data);
+    return this.transmit(request);
   }
 
   async close() {

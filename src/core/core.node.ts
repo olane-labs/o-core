@@ -14,19 +14,22 @@ import { oConnectionManager } from './lib/o-connection-manager';
 import { oRequest } from './lib/o-request';
 import { oResponse } from './lib/o-response';
 import { oConnection } from './lib/o-connection';
+import { oDependency } from './o-dependency';
+import { oHandshakeResponse, oProtocolMethods } from './protocol';
+import { ConnectionSendParams } from './interfaces/connection-send-params.interface';
 
 export abstract class oCoreNode {
   public p2pNode: Libp2p;
-  protected logger: Logger;
-  protected tools: oCoreNode[] = [];
-  protected networkConfig: Libp2pConfig;
+  public logger: Logger;
+  public tools: oCoreNode[] = [];
+  public networkConfig: Libp2pConfig;
   public address: oAddress;
   public peerId: PeerId;
   public state: NodeState = NodeState.STOPPED;
   public errors: Error[] = [];
-  protected connectionManager: oConnectionManager;
+  public connectionManager: oConnectionManager;
 
-  constructor(protected readonly config: CoreConfig) {
+  constructor(readonly config: CoreConfig) {
     this.logger = new Logger(
       this.constructor.name + (config.name ? `:${config.name}` : ''),
     );
@@ -38,11 +41,50 @@ export abstract class oCoreNode {
     return this.config.type || NodeType.UNKNOWN;
   }
 
-  abstract initialize(parent?: oCoreNode): Promise<void>;
+  async initialize(): Promise<void> {}
 
-  async use(address: oAddress, data: oRequest): Promise<oResponse> {
+  async handleDependencies(dependencies: oDependency[]): Promise<oResponse[]> {
+    const response: oResponse[] = [];
+    for (const dependency of dependencies) {
+      const result = await this.use(new oAddress(dependency.address), {
+        _connectionId: 'unknown',
+        ...dependency.parameters,
+      });
+      response.push(result);
+    }
+    return response;
+  }
+
+  async handleHandshake(handshake: oResponse): Promise<oResponse[]> {
+    const response: oResponse[] = [];
+
+    // check if the response is a handshake response
+    if (handshake.result._requestMethod === oProtocolMethods.HANDSHAKE) {
+      const handshakeResponse = handshake as oHandshakeResponse;
+      const result = handshakeResponse.result;
+
+      // handle dependencies
+      if (result.dependencies) {
+        this.logger.debug(
+          'Handshake response received',
+          handshake.result.dependencies,
+        );
+        const dependencies = await this.handleDependencies(
+          result.dependencies.map((dependency) => new oDependency(dependency)),
+        );
+        response.push(...dependencies);
+      }
+    }
+
+    return response;
+  }
+
+  async use(address: oAddress, data: ConnectionSendParams): Promise<oResponse> {
     this.logger.debug('Using address: ' + address.toString());
     const connection = await this.connect(address);
+    // start the handshake
+    const handshake = await connection.start();
+    await this.handleHandshake(handshake);
     return connection.send(data);
   }
 
@@ -51,19 +93,19 @@ export abstract class oCoreNode {
   async connect(address: oAddress): Promise<oConnection> {
     const connection = await this.connectionManager.connect(address);
     if (!connection) {
-      throw new Error('Connection not found');
+      throw new Error('Connection failed');
     }
     return connection;
   }
 
-  protected async teardown(): Promise<void> {
+  public async teardown(): Promise<void> {
     this.logger.debug('Tearing down node...');
     this.tools.forEach((tool) => {
       tool.stop();
     });
   }
 
-  protected async startTools(): Promise<void> {
+  public async startTools(): Promise<void> {
     this.logger.debug('Starting tools...');
     await Promise.all(
       this.tools.map(async (tool) => {
@@ -117,30 +159,6 @@ export abstract class oCoreNode {
       this.state = NodeState.ERROR;
       this.logger.error('Node failed to stop', error);
     }
-  }
-
-  /**
-   * Add a tool to the node
-   * @param tool - The tool to add
-   */
-  addTool(tool: oCoreNode) {
-    if (this.tools.find((t) => t.address === tool.address)) {
-      throw new Error(
-        `Tool with protocol ${tool.address.value} already exists`,
-      );
-    }
-    this.tools.push(tool);
-  }
-
-  getTool(address: oAddress): oCoreNode {
-    const toolAddress = this.toolAddress(address);
-    const tool = this.tools.find(
-      (t) => t.config.address?.toString() === address?.toString(),
-    );
-    if (!tool) {
-      throw new Error(`Tool with protocol ${toolAddress.toString()} not found`);
-    }
-    return tool;
   }
 
   /**
