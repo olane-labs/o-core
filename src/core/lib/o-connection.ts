@@ -25,7 +25,6 @@ export class oConnection {
     private readonly config: {
       address: oAddress;
       p2pConnection: Connection;
-      onHandshake: (data: any) => Promise<oDependency[]>;
     },
   ) {
     this.id = uuidv4();
@@ -85,8 +84,8 @@ export class oConnection {
         this.dependencies = (
           response.result.dependencies as Array<oDependency>
         ).map((dependency) => new oDependency(dependency));
-        const dependencyResults = await this.config.onHandshake(this);
-        this.dependencies = dependencyResults;
+        // const dependencyResults = await this.config.onHandshake(this);
+        // this.dependencies = dependencyResults;
       }
       if (response.result.parameters) {
         this.parameters = {
@@ -113,7 +112,7 @@ export class oConnection {
     return response;
   }
 
-  async send(data: any) {
+  async send(data: oRequest): Promise<oResponse> {
     this.logger.debug('Sending data via protocol: ' + this.address.value, data);
 
     // start the handshake

@@ -11,6 +11,9 @@ import { Logger } from './utils/logger';
 import { CoreUtils } from './utils/core.utils';
 import { NodeType } from './interfaces/node-type.enum';
 import { oConnectionManager } from './lib/o-connection-manager';
+import { oRequest } from './lib/o-request';
+import { oResponse } from './lib/o-response';
+import { oConnection } from './lib/o-connection';
 
 export abstract class oCoreNode {
   public p2pNode: Libp2p;
@@ -21,7 +24,7 @@ export abstract class oCoreNode {
   public peerId: PeerId;
   public state: NodeState = NodeState.STOPPED;
   public errors: Error[] = [];
-  private connectionManager: oConnectionManager;
+  protected connectionManager: oConnectionManager;
 
   constructor(protected readonly config: CoreConfig) {
     this.logger = new Logger(
@@ -29,17 +32,6 @@ export abstract class oCoreNode {
     );
     this.address = config.address || new oAddress('o://node');
     this.networkConfig = config.network || defaultLibp2pConfig;
-    this.connectionManager = new oConnectionManager({
-      logger: this.logger,
-    });
-  }
-
-  get networkCard() {
-    return {
-      id: this.peerId,
-      multiaddrs: this.p2pNode.getMultiaddrs(),
-      type: this.type,
-    };
   }
 
   get type() {
@@ -48,9 +40,21 @@ export abstract class oCoreNode {
 
   abstract initialize(parent?: oCoreNode): Promise<void>;
 
-  abstract use(address: oAddress, data: any): Promise<void>;
+  async use(address: oAddress, data: oRequest): Promise<oResponse> {
+    this.logger.debug('Using address: ' + address.toString());
+    const connection = await this.connect(address);
+    return connection.send(data);
+  }
 
   abstract register(dto?: any): Promise<void>;
+
+  async connect(address: oAddress): Promise<oConnection> {
+    const connection = await this.connectionManager.connect(address);
+    if (!connection) {
+      throw new Error('Connection not found');
+    }
+    return connection;
+  }
 
   protected async teardown(): Promise<void> {
     this.logger.debug('Tearing down node...');
@@ -82,6 +86,12 @@ export abstract class oCoreNode {
     this.p2pNode = this.p2pNode;
     try {
       await this.initialize();
+      // initialize connection manager
+      this.connectionManager = new oConnectionManager({
+        logger: this.logger,
+        p2pNode: this.p2pNode,
+      });
+      // continue with startup
       await this.startTools();
       await this.register();
       this.state = NodeState.RUNNING;
