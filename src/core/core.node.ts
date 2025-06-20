@@ -11,17 +11,15 @@ import { Logger } from './utils/logger';
 import { CoreUtils } from './utils/core.utils';
 import { NodeType } from './interfaces/node-type.enum';
 import { oConnectionManager } from './lib/o-connection-manager';
-import { oRequest } from './lib/o-request';
 import { oResponse } from './lib/o-response';
 import { oConnection } from './lib/o-connection';
 import { oDependency } from './o-dependency';
-import { oHandshakeResponse, oProtocolMethods } from './protocol';
+import { oHandshakeResponse, oProtocolMethods } from '@olane/o-protocol-tmp';
 import { ConnectionSendParams } from './interfaces/connection-send-params.interface';
 
 export abstract class oCoreNode {
   public p2pNode: Libp2p;
   public logger: Logger;
-  public tools: oCoreNode[] = [];
   public networkConfig: Libp2pConfig;
   public address: oAddress;
   public peerId: PeerId;
@@ -88,7 +86,9 @@ export abstract class oCoreNode {
     return connection.send(data);
   }
 
-  abstract register(dto?: any): Promise<void>;
+  async register(dto?: any): Promise<void> {
+    this.logger.debug('Registering node...');
+  }
 
   async connect(address: oAddress): Promise<oConnection> {
     const connection = await this.connectionManager.connect(address);
@@ -100,19 +100,6 @@ export abstract class oCoreNode {
 
   public async teardown(): Promise<void> {
     this.logger.debug('Tearing down node...');
-    this.tools.forEach((tool) => {
-      tool.stop();
-    });
-  }
-
-  public async startTools(): Promise<void> {
-    this.logger.debug('Starting tools...');
-    await Promise.all(
-      this.tools.map(async (tool) => {
-        this.logger.debug('Starting tool: ' + tool.address.toString());
-        await tool.start();
-      }),
-    );
   }
 
   /**
@@ -133,8 +120,6 @@ export abstract class oCoreNode {
         logger: this.logger,
         p2pNode: this.p2pNode,
       });
-      // continue with startup
-      await this.startTools();
       await this.register();
       this.state = NodeState.RUNNING;
     } catch (error) {

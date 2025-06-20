@@ -3,7 +3,7 @@ import {
   RequestId,
   oResponse as Response,
   Result,
-} from '../protocol';
+} from '@olane/o-protocol-tmp';
 
 export class oResponse implements Response {
   jsonrpc: typeof JSONRPC_VERSION;

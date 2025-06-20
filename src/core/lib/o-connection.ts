@@ -1,14 +1,9 @@
 import { Connection, Uint8ArrayList, pushable, all } from '@olane/o-config';
 import { Logger } from '../utils/logger';
 import { oAddress } from '../o-address';
-import { oDependency } from '../o-dependency';
 import { v4 as uuidv4 } from 'uuid';
 import { oRequest } from './o-request';
-import {
-  JSONRPC_VERSION,
-  oHandshakeRequest,
-  oProtocolMethods,
-} from '../protocol';
+import { oProtocolMethods } from '@olane/o-protocol-tmp';
 import { oResponse } from './o-response';
 import { ConnectionSendParams } from '../interfaces/connection-send-params.interface';
 
@@ -17,8 +12,6 @@ export class oConnection {
   private readonly logger: Logger;
   private readonly p2pConnection: Connection;
   private readonly address: oAddress;
-  private dependencies: oDependency[] = [];
-  private parameters: any;
   private handshakePromise: Promise<oResponse> | null = null;
   private requestCounter: number = 0;
 
@@ -58,6 +51,7 @@ export class oConnection {
       method: method,
       params: {
         _connectionId: this.id,
+        _requestMethod: method,
         ...params,
       },
       id: this.requestCounter++,

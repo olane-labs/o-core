@@ -4,7 +4,7 @@ import {
   Request,
   RequestId,
   RequestParams,
-} from '../protocol';
+} from '@olane/o-protocol-tmp';
 
 export class oRequest implements JSONRPCRequest {
   jsonrpc: typeof JSONRPC_VERSION;
@@ -15,7 +15,7 @@ export class oRequest implements JSONRPCRequest {
   constructor(config: Request & { id: RequestId }) {
     this.jsonrpc = JSONRPC_VERSION;
     this.method = config.method;
-    this.params = config.params || { _connectionId: 'unknown' };
+    this.params = config.params;
     this.id = config.id;
   }
 

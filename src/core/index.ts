@@ -5,3 +5,4 @@ export * from './interfaces';
 export * from './o-dependency';
 export * from './utils/logger';
 export * from './lib';
+export * from './o-parameter';

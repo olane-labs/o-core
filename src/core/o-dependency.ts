@@ -1,9 +1,12 @@
-import { oDependency as oDependencyType } from '../core/protocol';
+import {
+  oDependency as oDependencyType,
+  oParameter,
+} from '@olane/o-protocol-tmp';
 
 export class oDependency implements oDependencyType {
   address: string;
-  version: string;
-  parameters: { [key: string]: unknown };
+  version?: string;
+  parameters?: oParameter[];
 
   constructor(config: oDependencyType) {
     this.address = config.address;

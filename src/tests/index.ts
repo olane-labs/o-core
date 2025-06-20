@@ -1,33 +1,18 @@
-// import { oNode } from '../node';
-// import { oAddress } from '../core/o-address';
-// import { oRequest } from '../core/lib/o-request';
+import { oNode } from '../node';
+import { oAddress } from '../core/o-address';
+import { oRequest } from '../core/lib/o-request';
 
-// (async () => {
-//   // setup the root leader node
+(async () => {
+  // setup the root leader node
 
-//   // setup the host node
-//   const node = new oNode({
-//     address: new oAddress('o://node'),
-//   });
+  // setup the host node
+  const node = new oNode({
+    address: new oAddress('o://node'),
+  });
 
-//   await node.start();
+  await node.start();
 
-//   const response = await node.use(
-//     new oAddress('o://node'),
-//     new oRequest({
-//       address: new oAddress('o://node'),
-//       params: {
-//         type: 'handshake',
-//       },
-//     }),
-//   );
+  await new Promise((resolve) => setTimeout(resolve, 5_000));
 
-//   // setup the client node
-//   const client = new oNode({
-//     address: new oAddress('o://client'),
-//   });
-
-//   await client.start();
-
-//   const clientResponse = await client.use(
-// })();
+  await node.stop();
+})();
